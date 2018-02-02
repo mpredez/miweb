@@ -15,9 +15,19 @@
   <link rel="stylesheet" href=" {{ url('/assets/css/bootstrap.css')}}">
   <link rel="stylesheet" href=" {{ url('/assets/css/app.css')}}">
   
- 
+
+<!--  jQuery -->
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<!-- Bootstrap Date-Picker Plugin -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+
+
   <!-- Fonts -->
   <link href='//fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+   <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
   @show
  
 @yield('mis_estilos')
@@ -32,16 +42,14 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="{{url('/')}}">Customerdb Laravel</a>
+        <a class="navbar-brand" href="{{url('/')}}">Pagina Principal</a>
       </div>
       <div id="navbar" class="navbar-collapse collapse">
         <ul class="nav navbar-nav navbar-right">
           <li><a class="disabled" href="{{url('/compras')}}">Compras</a></li>
-          <li><a class="active" href="{{url('/compras/create')}}">ABM Producto</a></li>
-          <li><a href="#">Países</a></li>
-          <li><a class="active" href="{{url('/monedas')}}">Monedas</a></li>
-          <li><a href="#">Idiomas</a></li>
-          <li><a href="#">Formas de pago</a></li>
+          <li><a class="active" href="{{url('/compras/create')}}">Nueva Compra</a></li>
+          <li><a href="{{url('/productos')}}">Productos</a></li>
+          <li><a class="active" href="{{url('/productos/create')}}">Nuevo Producto</a></li>
           <li><a href="#">Ayuda</a></li>
         </ul>
         <form class="navbar-form navbar-right">

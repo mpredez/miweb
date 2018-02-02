@@ -12,8 +12,9 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('compras.principal');
 });
 	
 Route::resource('monedas', 'CbCurrencyController');
 Route::resource('compras', 'ComprasController');
+Route::resource('productos', 'ProductosController');

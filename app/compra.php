@@ -16,7 +16,7 @@ class compra extends Model
   protected $primaryKey = 'id_compra';
  
   // Denimos los campos de la tabla directamente en la variable de tipo array $fillable
-  protected $fillable =  array('descripcion', 'lugar', 'total', 'fecha');
+  protected $fillable =  array('total', 'fecha');
 
 
 }

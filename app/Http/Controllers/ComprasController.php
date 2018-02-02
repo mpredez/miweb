@@ -6,37 +6,86 @@ use Illuminate\Http\Request;
 
 use App\detalle;
 use App\productos;
+use App\compra;
 use App\Http\Requests;
+
 
 class ComprasController extends Controller
 {
-    //
 
 
-  public function index()
+  public function index(Request $request)
   {
-    // Devolverá todas las monedas
-   // $monedas = detalle::get();
-   //$monedas = CbCurrency::select('*')->get();
-   //$monedas=CbCurrency::where('currency','Euro')->get(); ///Where
-  	      
-   // $monedas = CbCurrency::select('SELECT * FROM [MIWEB].[dbo].[cb_currency]');
-     
-   /* $monedas =
-        detalle::join('productos',function($join){
-            $join->on('detalle.id_producto','=','productos.id_producto');
-        })->select('*')->get();// Hay problemas al intentar comparar un bolean por eso se recomiendo utilizar < > */
+   		 // Devolverá todas las monedas
+   		 // $monedas = detalle::get();
+         //$monedas = CbCurrency::select('*')->get();
+         //$monedas=CbCurrency::where('currency','Euro')->get(); ///Where
+  	     /* $compras = detalle::join("compra","detalle.id_compra","=","compra.id_compra")->join('productos','detalle.id_producto','productos.id_producto')- >get();*/    
+        $comprasDesc = '';
+        $compraPersonalizada = '';
 
-        $monedas = detalle::join("compra","detalle.id_compra","=","compra.id_compra")->join('productos','detalle.id_producto','productos.id_producto')->get();
+        if( $request->bcompra == 'Compra Del Dia' or is_null($request->bcompra)){
+        	    
+		       $pdo = \DB::connection()->getPdo();
+		       $stmt = $pdo->prepare('exec dbo.CompraDia');
+			   $out=$stmt->execute(); 
+               $comprasDesc = 'Compras del Día';
+			   if($out)
+				   $compras = $stmt->fetchAll();
 
-      
-    /*$producto = new productos();
-    $producto->nombre = 'Tomate';
-    $producto->tipo = 'Verduleria';
-    $producto->save();*/
-    return view('compras.index')->with('monedas',$monedas);
-  }
+		        return view('compras.index')->with('compras',$compras)->with('comprasDesc',$comprasDesc)->with('compraPer',$compraPersonalizada);
 
+   	   }
+   	   else
+       {
+             if($request->bcompra == 'Compra Del Mes'){ 
+             	$pdo = \DB::connection()->getPdo();
+		        $stmt = $pdo->prepare('exec dbo.CompraMes');
+				$out=$stmt->execute(); 
+                $comprasDesc = 'Compras del Mes';
+				if($out)
+				   $compras = $stmt->fetchAll();
+
+		        return view('compras.index')->with('compras',$compras)->with('comprasDesc',$comprasDesc)->with('compraPer',$compraPersonalizada);
+		    }else{
+
+                 if($request->bcompra == 'Compra Personalizada'){ 
+                       
+
+                       $fechaInicio = $request->fechaInicio;
+                       $fechaFin = $request->fechaFin;
+
+
+                       $compraPersonalizada = 'Personalizada';
+
+                        if(is_null($fechaInicio) or is_null($fechaFin)){  
+
+                        	     $comprasDesc = 'Compra Personalizada';
+
+                                 return view('compras.index')->with('comprasDesc',$comprasDesc)->with('compraPer',$compraPersonalizada);
+                        }else{  
+                                
+		                        $pdo = \DB::connection()->getPdo();
+						        $stmt = $pdo->prepare('exec dbo.CompraPersonalizada ?,?');
+						        $stmt->bindParam(1,$fechaInicio);
+				                $stmt->bindParam(2,$fechaFin);
+								$out=$stmt->execute(); 
+				                $comprasDesc = 'Compra Personalizada';
+				                $compraPersonalizada = '';
+
+								if($out)
+								   $compras = $stmt->fetchAll();
+
+						     	 return view('compras.index')->with('compras',$compras)->with('comprasDesc',$comprasDesc)->with('compraPer',$compraPersonalizada);
+						 } 
+
+                 }
+
+
+		    }
+      }
+
+      }
 	  /**
 	 * Muestra la moneda seleccionada por id.
 	 * @param $IdCurrency 
@@ -44,33 +93,84 @@ class ComprasController extends Controller
 	 */
 
 
-
-	
-    
-
 	public function show($IdCurrency)
 	{
 	  // Devuelve la moneda seleccionada por id.
-	  $moneda = CbCurrency::find($IdCurrency);
-	  return view('monedas.show')->with('moneda',$moneda);
+	  $compras = CbCurrency::find($id_compra);
+	  return view('monedas.show')->with('moneda',$compras);
 	}
 
 
-   public function create()
+    public function findTipo(Request $request)
+	{
+	  // Devuelve la moneda seleccionada por id.
+
+		
+	 // $productos = productos::find($tipos);
+	 // return view('compras.create')->with('producto',$producto);
+	}
+
+
+
+   public function create(Request $request)
    {
-        return view('compras.create');
+     	
+	   	   $productos = new productos();
+
+	   	   $productos = productos::select('nombre')->where('tipo',$request->get('tipos'))->get();
+
+	   	    $tipos = productos::select('tipo')->groupby('tipo')->get();
+	        return view('compras.create')->with('tipos',$tipos)->with('productos',$productos);
+        
    }
 
- public function store(Request $request)
+    public function store(Request $request)
     {
-        $producto = new productos();
-        $producto->nombre = $request->input('nombre');
-        $producto->tipo  = $request->input('tipo');
+         $detalle = new detalle();
+         $compra = new compra();
+        
+         //	$res = $stmt->query('select @out')->fetchAll();
 
-        $producto->save();
+        $descripcion = $request->descripcion;
+        $fecha = $request->fecha;
+        $producto = $request->producto;
+        $precio = $request->precio;
+        $cantidad = $request->cantidad;
 
-        return redirect()->route('compras.index');
+       
+
+
+		$pdo = \DB::connection()->getPdo();
+        $stmt = $pdo->prepare('exec dbo.INSERTA_COMPRA ?,?,?,?,?');
+		$stmt->bindParam(1,$descripcion);
+		$stmt->bindParam(2,$fecha);
+		$stmt->bindParam(3,$producto);
+		$stmt->bindParam(4,$precio);
+		$stmt->bindParam(5,$cantidad);
+		$out=$stmt->execute();
+		
+
+	
+		
+		if($out){
+			 $notificacion = array(
+	            'message' => 'Gracias! Su Compra se inserto con exito!', 
+	            'alert-type' => 'success');
+		}else{
+
+				$notificacion = array(
+	            'message' => 'Error al intentar ingresar la compra !', 
+	            'alert-type' => 'error');
+			}
+
+	
+
+        
+       // return view('compras.create')->with('prueba',$prueba)
+        return redirect()->route('compras.create')->with($notificacion);
     }
+
+
 
 
 }
